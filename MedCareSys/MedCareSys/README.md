@@ -1,4 +1,4 @@
-# Hospital Management System (HMS)
+# MedCareSYS – Multi-Hospital Management System in PHP and MySQL
 
 A web-based Hospital Management System for managing patients, doctors, appointments, and medical records. Built with PHP and MySQL.
 
