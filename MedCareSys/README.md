@@ -98,11 +98,6 @@ MedCareSys/
 
 ---
 
-## Screenshots
-*Add screenshots of the main pages here for better documentation.*
-
----
-
 ## License
 This project is for academic and demonstration purposes.
 
