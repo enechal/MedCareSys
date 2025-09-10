@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedCareSYS – Telemedicine & Payment</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: url('https://i.imgur.com/3v4uAIU.png') center/cover fixed no-repeat,
+                  rgba(0, 123, 255, 0.1);
+      background-blend-mode: overlay;
+      color: #333;
+      padding: 50px 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: rgba(255,255,255,0.95);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    h2 { color: #0d6efd; }
+    .form-control, .btn { border-radius: 8px; }
+    .btn-primary {
+      background: #0d6efd;
+      border: none;
+    }
+    .btn-primary:hover {
+      background: #0b5ed7;
+    }
+    hr { margin: 30px 0; }
+    #msg {
+      font-size: 1rem;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center mb-4">Telemedicine & Payment Submission</h2>
+    <form id="mainForm">
+      <div class="mb-4">
+        <label class="form-label">Your Role</label>
+        <select name="role" class="form-select" required>
+          <option value="">– Select Role –</option>
+          <option>Super Admin</option>
+          <option>Doctor</option>
+          <option>Patient</option>
+        </select>
+      </div>
+
+      <hr>
+      <h5 class="mb-3">Telemedicine Details</h5>
+      <div class="row g-3 mb-4">
+        <div class="col">
+          <label>Date</label>
+          <input type="date" name="tele_date" class="form-control" required>
+        </div>
+        <div class="col">
+          <label>Time</label>
+          <input type="time" name="tele_time" class="form-control" required>
+        </div>
+      </div>
+
+      <hr>
+      <h5 class="mb-3">Payment Details</h5>
+      <div class="mb-3">
+        <label>Amount (USD)</label>
+        <input name="pay_amount" type="number" step="0.01" class="form-control" placeholder="e.g., 50.00" required>
+      </div>
+      <div class="mb-3">
+        <label>Payment Method</label>
+        <input name="pay_method" type="text" class="form-control" placeholder="e.g., Card, Cash" required>
+      </div>
+      <div class="mb-3">
+        <label>Transaction Reference</label>
+        <input name="pay_ref" type="text" class="form-control" placeholder="e.g., TXN123456" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Submit Now</button>
+    </form>
+
+    <div id="msg" class="alert d-none"></div>
+
+    <hr>
+    <h4 class="mt-4">Submitted Records</h4>
+    <ul id="list" class="list-group"></ul>
+  </div>
+
+  <script>
+    $(function(){
+      let db;
+      const req = indexedDB.open('MedCareSYS', 1);
+      req.onupgradeneeded = () => {
+        db = req.result;
+        db.createObjectStore('forms', { keyPath: 'id', autoIncrement: true });
+      };
+      req.onsuccess = () => { db = req.result; loadList(); };
+
+      $('#mainForm').on('submit', function(e){
+        e.preventDefault();
+        const d = this;
+        const data = {
+          role: d.role.value,
+          tele_date: d.tele_date.value,
+          tele_time: d.tele_time.value,
+          pay_amount: parseFloat(d.pay_amount.value).toFixed(2),
+          pay_method: d.pay_method.value.trim(),
+          pay_ref: d.pay_ref.value.trim(),
+          submitted_at: new Date().toLocaleString()
+        };
+        const tx = db.transaction('forms','readwrite');
+        tx.objectStore('forms').add(data);
+        tx.oncomplete = () => {
+          $('#msg').removeClass('d-none alert-danger')
+                   .addClass('alert-success')
+                   .text('✅ Submitted Successfully!');
+          d.reset();
+          loadList();
+        };
+        tx.onerror = () => {
+          $('#msg').removeClass('d-none alert-success')
+                   .addClass('alert-danger')
+                   .text('❌ Submission Failed.');
+        };
+      });
+
+      function loadList() {
+        $('#list').empty();
+        db.transaction('forms','readonly').objectStore('forms')
+          .openCursor(null,'prev').onsuccess = e => {
+            const cur = e.target.result;
+            if(cur){
+              const x=cur.value;
+              $('#list').append(`
+                <li class="list-group-item">
+                  <strong>${x.role}</strong> | ${x.tele_date} ${x.tele_time} | $${x.pay_amount} via ${x.pay_method}<br>
+                  <small>Ref: ${x.pay_ref} • ${x.submitted_at}</small>
+                </li>`);
+              cur.continue();
+            }
+          };
+      }
+    });
+  </script>
+</body>
+</html>

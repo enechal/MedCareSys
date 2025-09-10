@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(45deg, #a3d9ff, #ff9b94, #ffe02d);
+            background-size: 400% 400%;
+            animation: gradientAnimation 5s ease infinite;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-container .form-control {
+            margin-bottom: 15px;
+        }
+
+        .form-container button {
+            background-color: #00b894;
+            border: none;
+            padding: 10px 20px;
+            color: #fff;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .form-container button:hover {
+            background-color: #00cec9;
+        }
+
+        .success-message {
+            display: none;
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .record-section {
+            margin-top: 30px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- Patient Form -->
+                <div class="form-container card">
+                    <h2>Contact Form - Patient</h2>
+                    <form id="contactForm" onsubmit="submitForm(event)">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Your Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Your Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="patient">Patient</option>
+                                <option value="doctor">Doctor</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Your Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                        </div>
+                        <button type="submit">Submit</button>
+                    </form>
+                </div>
+
+                <!-- Success Message -->
+                <div id="successMessage" class="success-message">
+                    Data submitted successfully!
+                </div>
+
+                <!-- Patient, Doctor, Admin Records Section -->
+                <div id="patientRecords" class="record-section">
+                    <h3>Patient Records</h3>
+                    <div id="patientHistory"></div>
+                </div>
+                <div id="doctorRecords" class="record-section">
+                    <h3>Doctor Records</h3>
+                    <div id="doctorHistory"></div>
+                </div>
+                <div id="adminRecords" class="record-section">
+                    <h3>Admin Records</h3>
+                    <div id="adminHistory"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Handle form submission and dynamically save to localStorage
+        function submitForm(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const role = document.getElementById("role").value;
+            const message = document.getElementById("message").value;
+
+            // Get previous records from localStorage or initialize
+            let records = JSON.parse(localStorage.getItem(role + 'Records')) || [];
+
+            // Save the new record to the relevant role section
+            records.push({ name, email, message, date: new Date().toLocaleString() });
+
+            // Store updated records in localStorage
+            localStorage.setItem(role + 'Records', JSON.stringify(records));
+
+            // Show success message
+            document.getElementById("successMessage").style.display = "block";
+
+            // Display records
+            displayRecords(role);
+        }
+
+        // Display records in their respective sections
+        function displayRecords(role) {
+            let records = JSON.parse(localStorage.getItem(role + 'Records')) || [];
+            let history = document.getElementById(role + 'History');
+
+            history.innerHTML = ''; // Clear existing records
+
+            records.forEach((record, index) => {
+                let recordDiv = document.createElement('div');
+                recordDiv.innerHTML = `
+                    <div>
+                        <strong>Name:</strong> ${record.name} <br>
+                        <strong>Email:</strong> ${record.email} <br>
+                        <strong>Message:</strong> ${record.message} <br>
+                        <strong>Date:</strong> ${record.date} <br>
+                    </div>
+                    <hr>
+                `;
+                history.appendChild(recordDiv);
+            });
+        }
+
+        // Initially display records for all roles
+        window.onload = function() {
+            displayRecords('patient');
+            displayRecords('doctor');
+            displayRecords('admin');
+        };
+    </script>
+</body>
+</html>
